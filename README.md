@@ -19,11 +19,17 @@ $ sudo make install
 ```
 
 Clean:
-```
+``` bash
 $ make clean
 ```
 
 Uninstall:
-```
+``` bash
 $ sudo make uninstall
+```
+
+Usage:
+``` bash
+$ ip-info {IP or host}
+$ ip-info # for get your ip detail (No argument).
 ```
