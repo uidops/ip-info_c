@@ -74,7 +74,7 @@ char *get_page(int s, char *ip) {
     
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
 	int		 sockfd = -1;
 	char		*ip;
 
