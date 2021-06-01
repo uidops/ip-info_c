@@ -32,7 +32,7 @@ SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC = clang
 STRIP = llvm-strip
-CFLAGS = -ljson-c -Wall -O2 -fuse-ld=lld
+CFLAGS = -ljson-c -Wall -O2 -fuse-ld=lld -flto=thin
 TARGET = ip-info
 
 all: $(TARGET)

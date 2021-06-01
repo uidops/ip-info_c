@@ -20,7 +20,7 @@ $ (sudo/doas) make install
 
 Build and install (gcc):
 ``` bash
-$ make CC=gcc STRIP=strip
+$ make CC=gcc STRIP=strip CFLAGS="-ljson-c -Wall -O2"
 $ (sudo/doas) make install
 ```
 
