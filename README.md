@@ -1,6 +1,6 @@
 <div align="center"><img src="https://github.com/siruidops/ip-info_c/raw/main/.tmp/text.gif"/>
 
-![License](https://img.shields.io/badge/license-GPL-blue) ![Status](https://img.shields.io/badge/state-success-cyan) ![Language](https://img.shields.io/badge/language-C-purple)
+![License](https://img.shields.io/badge/license-BSD-blue) ![Status](https://img.shields.io/badge/state-success-cyan) ![Language](https://img.shields.io/badge/language-C-purple)
 </div>
 
 # Get information about IP in C 
