@@ -4,18 +4,24 @@
 </div>
 
 # Get information about IP in C 
-tested on Arch linux + GCC 10.2.0 + GNU Make 4.3
+tested on Gentoo + CLANG 12.0.0 + GNU Make 4.3
 
 Dependencies:
 ```
 make
-gcc
+clang/llvm (or gcc)
 ```
 
-Build and install:
+Build and install (clang/llvm):
 ``` bash
 $ make
-$ sudo make install
+$ (sudo/doas) make install
+```
+
+Build and install (gcc):
+``` bash
+$ make CC=gcc STRIP=strip
+$ (sudo/doas) make install
 ```
 
 Clean:
@@ -31,5 +37,5 @@ $ sudo make uninstall
 Usage:
 ``` bash
 $ ip-info {IP or host}
-$ ip-info # for get your ip detail (No argument).
+$ ip-info # For get your ip detail (Without any argument).
 ```

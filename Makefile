@@ -31,7 +31,7 @@
 SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC = clang
-STRIP= llvm-strip
+STRIP = llvm-strip
 CFLAGS = -ljson-c -Wall -O2 -fuse-ld=lld
 TARGET = ip-info
 
