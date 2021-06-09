@@ -46,7 +46,7 @@
 #define KMAG  "\x1B[35m"
 
 char *get_page(int s, char *ip) {
-    char		*msg= (char *)malloc(1024);
+    char		*msg = (char *)malloc(1024);
 	char		*ww, buf[0x400+1];
     
     const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
