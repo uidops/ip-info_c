@@ -46,32 +46,32 @@
 #define KMAG  "\x1B[35m"
 
 char *get_page(int s, char *ip) {
-    char		*msg = (char *)malloc(1024);
+	char		*msg = (char *)malloc(1024);
 	char		*ww, buf[0x400+1];
-    
-    const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
-    int		 i = sprintf(msg, format, ip, HOST);
+
+	const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+	int		 i = sprintf(msg, format, ip, HOST);
 	if (i == 0x00) errx(EXIT_FAILURE, "sprintf failed.");
 
-    i = send(s, msg, strlen(msg), 0);
+	i = send(s, msg, strlen(msg), 0);
 	if (i == -1) errx(EXIT_FAILURE, "send failed. {%s}", strerror(errno));
 
-    sleep(1);
+	sleep(1);
 
-    i = recv(s, buf, 0x400, 0);
+	i = recv(s, buf, 0x400, 0);
 	if (i == -1) errx(EXIT_FAILURE, "recv failed. {%s}", strerror(errno));
-    if (i == 0) errx(EXIT_FAILURE, "no data recivied.");
-    buf[i] = '\0';
+	if (i == 0) errx(EXIT_FAILURE, "no data recivied.");
+	buf[i] = '\0';
 
-    ww = malloc(sizeof(buf)*15); 
-    ww = strcpy(ww, buf);
+	ww = malloc(sizeof(buf)*15); 
+	ww = strcpy(ww, buf);
 
-    char *content = strstr(ww, "\r\n\r\n");
-    if (content == NULL) errx(EXIT_FAILURE, "no header found.");
-    content += 4;
+	char *content = strstr(ww, "\r\n\r\n");
+	if (content == NULL) errx(EXIT_FAILURE, "no header found.");
+	content += 4;
 
-    return content;
-    
+	return content;
+
 }
 
 int main(int argc, char *argv[]) {
