@@ -46,7 +46,7 @@
 #define KMAG  "\x1B[35m"
 
 char *get_page(int s, char *ip) {
-	char		*msg = (char *)malloc(1024);
+	char		*msg = calloc(sizeof(char), 1024);
 	char		*ww, buf[0x400+1];
 
 	const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
@@ -63,13 +63,16 @@ char *get_page(int s, char *ip) {
 	if (i == 0) errx(EXIT_FAILURE, "no data recivied.");
 	buf[i] = '\0';
 
-	ww = malloc(sizeof(buf)*15); 
+	ww = calloc(sizeof(buf), 15); 
 	ww = strcpy(ww, buf);
 
 	char *content = strstr(ww, "\r\n\r\n");
 	if (content == NULL) errx(EXIT_FAILURE, "no header found.");
 	content += 4;
-
+	content = strdup(content);
+	
+	free(ww);
+	free(msg);
 	return content;
 
 }
