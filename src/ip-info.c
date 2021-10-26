@@ -31,7 +31,7 @@
 #include <arpa/inet.h>
 #include <json-c/json.h>
 #include <err.h>
-#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,28 +46,42 @@
 #define KMAG  "\x1B[35m"
 
 char *get_page(int s, char *ip) {
+	int		 i;
 	char		*msg = calloc(sizeof(char), 1024);
-	char		*ww, buf[0x400+1];
+	char		*ww, buf[1024];
 
-	const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
-	int		 i = sprintf(msg, format, ip, HOST);
-	if (i == 0x00) errx(EXIT_FAILURE, "sprintf failed.");
+	const char		*format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: " 
+		"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+
+	if (!sprintf(msg, format, ip, HOST))
+		errx(EXIT_FAILURE, "sprintf() faild");
 
 	i = send(s, msg, strlen(msg), 0);
-	if (i == -1) errx(EXIT_FAILURE, "send failed. {%s}", strerror(errno));
+	if (i == -1)
+		err(EXIT_FAILURE, "send()");
+	
+	fcntl(s, F_SETFL, O_NONBLOCK);
+	while (1) {
+		i = recv(s, buf, 1024, 0);
+		if (i == -1)
+			usleep(100000);
+		else
+			break;
+	}
 
-	sleep(1);
 
-	i = recv(s, buf, 0x400, 0);
-	if (i == -1) errx(EXIT_FAILURE, "recv failed. {%s}", strerror(errno));
-	if (i == 0) errx(EXIT_FAILURE, "no data recivied.");
+	if (!i)
+		errx(EXIT_FAILURE, "no data recivied.");
+
 	buf[i] = '\0';
 
-	ww = calloc(sizeof(buf), 15); 
+	ww = calloc(sizeof(char), strlen(buf)); 
 	ww = strcpy(ww, buf);
 
-	char *content = strstr(ww, "\r\n\r\n");
-	if (content == NULL) errx(EXIT_FAILURE, "no header found.");
+	char		*content = strstr(ww, "\r\n\r\n");
+	if (!content)
+		errx(EXIT_FAILURE, "no header found.");
+
 	content += 4;
 	content = strdup(content);
 	
@@ -95,7 +109,8 @@ int main(int argc, char *argv[]) {
 	memset(&sock_addr, 0x00, sizeof(struct sockaddr_in));
 
 	h_addr = gethostbyname(HOST);
-	if (h_addr == (struct hostent *)0x00) errx(EXIT_FAILURE, "gethostbyname failed. {%s}", strerror(errno));
+	if (h_addr == (struct hostent *)0x00)
+		err(EXIT_FAILURE, "gethostbyname()");
 
 
 	
@@ -104,11 +119,12 @@ int main(int argc, char *argv[]) {
 	sock_addr.sin_addr.s_addr = *((unsigned long *)h_addr->h_addr);
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) errx(EXIT_FAILURE, "socket error. {%s}", strerror(errno));
+	if (sockfd == -1)
+		err(EXIT_FAILURE, "socket()");
 
 	if (connect(sockfd, (struct sockaddr *)&sock_addr, sizeof(sock_addr)) == -1) {
 		close(sockfd);
-		errx(EXIT_FAILURE, "connect failed. {%s}", strerror(errno));
+		err(EXIT_FAILURE, "connect()");	
 	}
 
 	char		*buffer = get_page(sockfd, ip);
