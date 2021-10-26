@@ -81,9 +81,7 @@ int main(int argc, char *argv[]) {
 	int		 sockfd = -1;
 	char		*ip;
 
-	const char		*status = (char *) calloc(128, sizeof(char)), *country = (char *) calloc(128, sizeof(char));
-	const char		*city = (char *) calloc(128, sizeof(char)), *timezone = (char *) calloc(128, sizeof(char));
-	const char		*isp = (char *) calloc(128, sizeof(char)), *query = (char *) calloc(128, sizeof(char));
+	const char		*status, *country, *city, *timezone, *isp, *query;
 
 	struct hostent *h_addr;
 	struct sockaddr_in sock_addr;
@@ -94,7 +92,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 2) ip = "";
 	else ip = argv[1];
 
-	memset(&sock_addr, 0x00, sizeof(sock_addr));
+	memset(&sock_addr, 0x00, sizeof(struct sockaddr_in));
 
 	h_addr = gethostbyname(HOST);
 	if (h_addr == (struct hostent *)0x00) errx(EXIT_FAILURE, "gethostbyname failed. {%s}", strerror(errno));
@@ -113,7 +111,7 @@ int main(int argc, char *argv[]) {
 		errx(EXIT_FAILURE, "connect failed. {%s}", strerror(errno));
 	}
 
-	char *buffer = get_page(sockfd, ip);
+	char		*buffer = get_page(sockfd, ip);
 	
 	obj = json_tokener_parse_verbose(buffer, &error);
 	if (error != json_tokener_success) errx(EXIT_FAILURE, "Buffer not json.");
@@ -129,7 +127,8 @@ int main(int argc, char *argv[]) {
 	printf("%s- %sISP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, isp, KNRM);
 	query = json_object_get_string(json_object_object_get(obj, "query"));
 	printf("%s- %sIP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, query, KNRM);
-
+	
+	free(buffer);
 	close(sockfd);
 	return EXIT_SUCCESS;
 }
