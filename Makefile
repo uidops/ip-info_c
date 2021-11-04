@@ -50,4 +50,4 @@ uninstall:
 	rm -f $(PREFIX)/bin/$(TARGET)
 
 clean:
-	rm $(TARGET)
+	rm -f $(TARGET)
