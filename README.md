@@ -4,7 +4,7 @@
 </div>
 
 # Get information about an IP
-Based on <a src="ip-api.com">ip-api.com</a>
+Based on <a href="ip-api.com">ip-api.com</a>
 Tested on Gentoo (X86-64) + LLVM/CLANG 13.0.0 + GNU Make 4.3
 
 Dependencies for build:
