@@ -45,15 +45,15 @@
 #define KBLU  "\x1B[34m"
 #define KMAG  "\x1B[35m"
 
-char		*get_page(int, char *);
+char	*get_page(int, char *);
 
 int
 main(int argc, char *argv[])
 {
-	int		 sockfd = -1;
-	char		*ip;
+	int sockfd = -1;
+	char *ip;
 
-	const char		*status, *country, *city, *timezone, *isp, *query;
+	const char *status, *country, *city, *timezone, *isp, *query;
 
 	struct hostent *h_addr;
 	struct sockaddr_in sock_addr;
@@ -61,16 +61,16 @@ main(int argc, char *argv[])
 	struct json_object *obj;
 	enum json_tokener_error error;
 
-	if (argc < 2) ip = "";
-	else ip = argv[1];
+	if (argc < 2)
+		ip = "";
+	else
+		ip = argv[1];
 
 	memset(&sock_addr, 0x00, sizeof(struct sockaddr_in));
 
 	h_addr = gethostbyname(HOST);
 	if (h_addr == (struct hostent *)0x00)
 		err(EXIT_FAILURE, "gethostbyname()");
-
-
 
 	sock_addr.sin_family = AF_INET;
 	sock_addr.sin_port = htons(80);
@@ -85,20 +85,27 @@ main(int argc, char *argv[])
 		err(EXIT_FAILURE, "connect()");
 	}
 
-	char		*buffer = get_page(sockfd, ip);
+	char *buffer = get_page(sockfd, ip);
 
 	obj = json_tokener_parse_verbose(buffer, &error);
-	if (error != json_tokener_success) errx(EXIT_FAILURE, "Buffer not json.");
+	if (error != json_tokener_success)
+		errx(EXIT_FAILURE, "Buffer not json.");
+
 	status = json_object_get_string(json_object_object_get(obj, "status"));
 	printf("%s- %sStatus%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, status, KNRM);
+	
 	country = json_object_get_string(json_object_object_get(obj, "country"));
 	printf("%s* %sCountry%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, country, KNRM);
+	
 	city = json_object_get_string(json_object_object_get(obj, "city"));
 	printf("%s- %sCity%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, city, KNRM);
+	
 	timezone = json_object_get_string(json_object_object_get(obj, "timezone"));
 	printf("%s- %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, timezone, KNRM);
+	
 	isp = json_object_get_string(json_object_object_get(obj, "isp"));
 	printf("%s- %sISP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, isp, KNRM);
+	
 	query = json_object_get_string(json_object_object_get(obj, "query"));
 	printf("%s- %sIP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, query, KNRM);
 
@@ -111,12 +118,12 @@ main(int argc, char *argv[])
 char *
 get_page(int s, char *ip)
 {
-	int		 i;
-	char		*msg = calloc(sizeof(char), 1024);
-	char		*ww, buf[1024];
+	int i;
+	char *msg = calloc(sizeof(char), 1024);
+	char *ww, buf[1024];
 
-	const char		*format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
-								"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+	const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
+							"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
 
 	if (!sprintf(msg, format, ip, HOST))
 		errx(EXIT_FAILURE, "sprintf() faild");
@@ -143,7 +150,7 @@ get_page(int s, char *ip)
 	ww = calloc(sizeof(char), strlen(buf));
 	ww = strcpy(ww, buf);
 
-	char		*content = strstr(ww, "\r\n\r\n");
+	char *content = strstr(ww, "\r\n\r\n");
 	if (!content)
 		errx(EXIT_FAILURE, "no header found.");
 
@@ -152,6 +159,6 @@ get_page(int s, char *ip)
 
 	free(ww);
 	free(msg);
-	return content;
 
+	return content;
 }
