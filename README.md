@@ -9,7 +9,7 @@ Tested on Gentoo (X86-64) + LLVM/CLANG 13.0.0 + GNU Make 4.3
 
 Dependencies for build:
 ```
-make
+make (gmake or bmake)
 clang/llvm (or gcc/binutils)
 json-c
 ```
@@ -17,13 +17,13 @@ json-c
 Build and install (clang/llvm):
 ``` bash
 $ make
-$ (sudo/doas) make install
+# make install
 ```
 
 Build and install (gcc/binutils):
 ``` bash
-$ make CC=gcc STRIP=strip CFLAGS="-ljson-c -Wall -O2"
-$ (sudo/doas) make install
+$ make CC=gcc STRIP=strip CFLAGS="-O2"
+# make install
 ```
 
 Clean:
@@ -33,7 +33,7 @@ $ make clean
 
 Uninstall:
 ``` bash
-$ (sudo/doas) make uninstall
+# make uninstall
 ```
 
 Usage:
