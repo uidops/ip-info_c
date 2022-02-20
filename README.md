@@ -17,13 +17,13 @@ json-c
 Build and install (clang/llvm):
 ``` bash
 $ make
-# make install
+$ make install
 ```
 
 Build and install (gcc/binutils):
 ``` bash
 $ make CC=gcc STRIP=strip CFLAGS="-O2"
-# make install
+$ make install
 ```
 
 Clean:
@@ -33,7 +33,7 @@ $ make clean
 
 Uninstall:
 ``` bash
-# make uninstall
+$ make uninstall
 ```
 
 Usage:
