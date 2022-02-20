@@ -148,7 +148,7 @@ get_page(int s, char *ip)
 	buf[i] = '\0';
 
 	ww = calloc(sizeof(char), strlen(buf));
-	ww = strcpy(ww, buf);
+	ww = strncpy(ww, buf, strlen(buf));
 
 	char *content = strstr(ww, "\r\n\r\n");
 	if (!content)

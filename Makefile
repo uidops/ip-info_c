@@ -32,13 +32,13 @@ SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC = clang
 STRIP = llvm-strip
-CFLAGS = -ljson-c -Wall -O2 -fuse-ld=lld -flto=thin
+CFLAGS = -Wall -Wextra -Werror -O2 -fuse-ld=lld -flto=thin -march=native -mtune=native -pipe -fstack-protector-strong
 TARGET = ip-info
 
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) -ljson-c
 	$(STRIP) $(TARGET)
 
 install: $(TARGET)
