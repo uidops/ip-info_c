@@ -35,6 +35,8 @@ STRIP = llvm-strip
 CFLAGS = -Wall -Wextra -Werror -O2 -fuse-ld=lld -flto=thin -march=native -mtune=native -pipe -fstack-protector-strong
 TARGET = ip-info
 
+.PHONY: clean test all
+
 all: $(TARGET)
 
 $(TARGET): $(SRC)
@@ -51,3 +53,6 @@ uninstall:
 
 clean:
 	rm -f $(TARGET)
+
+test:
+	./ip-info 8.8.8.8
