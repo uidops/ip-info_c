@@ -32,9 +32,15 @@
 #include <json-c/json.h>
 #include <err.h>
 #include <fcntl.h>
+#ifndef __USE_MISC
+#define __USE_MISC
+#endif
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef __USER_XOPEN_EXTENDED
+#define __USE_XOPEN_EXTENDED
+#endif
 #include <string.h>
 #include <unistd.h>
 
