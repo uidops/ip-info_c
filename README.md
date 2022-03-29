@@ -4,8 +4,7 @@
 </div>
 
 # Get information about an IP
-Based on <a href="http://ip-api.com">ip-api.com</a> <br />
-Tested on Gentoo (X86-64) + LLVM/CLANG 13.0.0 + GNU Make 4.3
+API: <a href="http://ip-api.com">ip-api.com</a> <br />
 
 Dependencies for build:
 ```
