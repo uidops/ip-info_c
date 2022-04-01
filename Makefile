@@ -32,7 +32,8 @@ SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC = clang
 STRIP = llvm-strip
-CFLAGS = -Wall -Wextra -Werror -O2 -fuse-ld=lld -flto=thin -march=native -mtune=native -pipe -fstack-protector-strong
+CFLAGS = -Wall -Wextra -O2 -fuse-ld=lld -flto=thin -march=native -pipe -fstack-protector-strong -fpie
+LIBS != pkg-config --cflags --libs json-c
 TARGET = ip-info
 
 .PHONY: clean test all
@@ -40,13 +41,13 @@ TARGET = ip-info
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) -ljson-c
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)
 	$(STRIP) $(TARGET)
 
 install: $(TARGET)
 	mkdir -p $(PREFIX)/bin
 	cp -f $(TARGET) $(PREFIX)/bin
-	chmod 755 $(PREFIX)/bin/$(TARGET)
+	chmod +x $(PREFIX)/bin/$(TARGET)
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(TARGET)
