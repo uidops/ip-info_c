@@ -32,7 +32,7 @@ SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC = clang
 STRIP = llvm-strip
-CFLAGS = -Wall -Wextra -O2 -fuse-ld=lld -flto=thin -march=native -pipe -fstack-protector-strong -fpie
+CFLAGS = -Wall -Wextra -O2 -fuse-ld=lld -pipe -fstack-protector-strong -fpie
 LIBS != pkg-config --cflags --libs json-c
 TARGET = ip-info
 
