@@ -32,11 +32,12 @@
 #include <json.h>
 #include <err.h>
 #include <fcntl.h>
-#include <time.h>
+#include <limits.h>
 #ifndef __USE_MISC
 #define __USE_MISC
 #endif
 #include <netdb.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __USER_XOPEN_EXTENDED
@@ -52,10 +53,11 @@
 #define KBLU  "\x1B[34m"
 #define KMAG  "\x1B[35m"
 
+long	response_code(const char *);
 char	*get_page(int, char *);
 
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
 	int sockfd = -1;
 	char *ip;
@@ -77,7 +79,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		ip = "";
 	else
-		ip = argv[1];
+		ip = *(argv + 1);
 
 	memset(&sock_addr, 0x00, sizeof(struct sockaddr_in));
 	memset(&hints, 0x00, sizeof(struct addrinfo));
@@ -118,13 +120,13 @@ main(int argc, char *argv[])
 	printf("%s- %sCity%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, city, KNRM);
 	
 	the_timezone = json_object_get_string(json_object_object_get(obj, "timezone"));
-	printf("%s- %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, the_timezone, KNRM);
+	printf("%s* %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, the_timezone, KNRM);
 	
 	isp = json_object_get_string(json_object_object_get(obj, "isp"));
 	printf("%s- %sISP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, isp, KNRM);
 	
 	query = json_object_get_string(json_object_object_get(obj, "query"));
-	printf("%s- %sIP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, query, KNRM);
+	printf("%s* %sIP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, query, KNRM);
 
 	free(buffer);
 	close(sockfd);
@@ -132,28 +134,56 @@ main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+long
+response_code(const char *s)
+{
+	if (s == NULL)
+		return -1;
+
+	char *last;
+	char *d = strdup(s);
+	const char *str = strtok_r(d, " ", &last);
+	if (str == NULL)
+		goto return_error;
+
+	str = strtok_r(NULL, " ", &last);
+	if (str == NULL)
+		goto return_error;
+
+	long code = (int) strtol(str, (char **)NULL, 10);
+	if (code == LONG_MAX || code == LONG_MIN)
+		goto return_error;
+
+	free(d);
+	return code;
+
+	return_error:
+		free(d);
+		return -1;
+}
+
 char *
-get_page(int s, char *ip)
+get_page(int sockfd, char *ip)
 {
 	ssize_t i;
-	char *msg = calloc(sizeof(char), 1024);
-	char *ww;
-	char buf[1024];
-
 	const char format[] = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
 			"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+	size_t length = sizeof(format) + sizeof(HOST) + strlen(ip);
+	char *msg = calloc(sizeof(char), length+1);
+	char buf[length+1+512];
 
-	if (!sprintf(msg, format, ip, HOST))
+
+	if (!snprintf(msg, length, format, ip, HOST))
 		errx(EXIT_FAILURE, "sprintf() faild");
 
-	i = send(s, msg, strlen(msg), 0);
+	i = send(sockfd, msg, strlen(msg), 0);
 	if (i == -1)
 		err(EXIT_FAILURE, "send()");
 
-	fcntl(s, F_SETFL, O_NONBLOCK);
+	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	struct timespec timeout = {0, 100000000L};
 	while (1) {
-		i = recv(s, buf, 1024, 0);
+		i = recv(sockfd, buf, length+1+512, 0);
 		if (i == -1)
 			nanosleep(&timeout, NULL);
 		else
@@ -166,17 +196,17 @@ get_page(int s, char *ip)
 
 	buf[i] = '\0';
 
-	ww = calloc(sizeof(char), strlen(buf));
-	ww = strncpy(ww, buf, strlen(buf));
+	long status_code = response_code(buf);
+	if (status_code != 200)
+		errx(EXIT_FAILURE, "response code %ld", status_code);
 
-	char *content = strstr(ww, "\r\n\r\n");
+	char *content = strstr(buf, "\r\n\r\n");
 	if (!content)
 		errx(EXIT_FAILURE, "no header found.");
 
 	content += 4;
 	content = strdup(content);
 
-	free(ww);
 	free(msg);
 
 	return content;
