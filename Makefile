@@ -30,9 +30,9 @@
 
 SRC = ./src/ip-info.c
 PREFIX = /usr/local
-CC = clang
-STRIP = llvm-strip
-CFLAGS = -Wall -Wextra -O2 -fuse-ld=lld -pipe -fstack-protector-strong -fpie
+CC = cc
+STRIP = strip
+CFLAGS = -Wall -Wextra -O2 -pipe -fstack-protector-strong -fpie
 LIBS != pkg-config --cflags --libs json-c
 TARGET = ip-info
 
@@ -42,7 +42,7 @@ all: $(TARGET)
 
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)
-	$(STRIP) $(TARGET)
+	$(STRIP) -s $(TARGET)
 
 install: $(TARGET)
 	mkdir -p $(PREFIX)/bin
