@@ -1,1 +1,4 @@
 ip-info
+compile_commands.json
+.cache
+.vscode
