@@ -29,6 +29,7 @@
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <json.h>
 #include <err.h>
 #include <fcntl.h>
