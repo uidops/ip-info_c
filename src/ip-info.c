@@ -32,6 +32,7 @@
 #include <json.h>
 #include <err.h>
 #include <fcntl.h>
+#include <time.h>
 #ifndef __USE_MISC
 #define __USE_MISC
 #endif
@@ -59,12 +60,18 @@ main(int argc, char *argv[])
 	int sockfd = -1;
 	char *ip;
 
-	const char *status, *country, *city, *timezone, *isp, *query;
+	const char *status;
+	const char *country;
+	const char *city;
+	const char *the_timezone;
+	const char *isp;
+	const char *query;
 
-	struct hostent *h_addr;
+	struct addrinfo hints;
+	struct addrinfo *res;
 	struct sockaddr_in sock_addr;
 
-	struct json_object *obj;
+	const struct json_object *obj;
 	enum json_tokener_error error;
 
 	if (argc < 2)
@@ -73,14 +80,18 @@ main(int argc, char *argv[])
 		ip = argv[1];
 
 	memset(&sock_addr, 0x00, sizeof(struct sockaddr_in));
+	memset(&hints, 0x00, sizeof(struct addrinfo));
 
-	h_addr = gethostbyname(HOST);
-	if (h_addr == (struct hostent *)0x00)
-		err(EXIT_FAILURE, "gethostbyname()");
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if (getaddrinfo(HOST, NULL, &hints, &res))
+		errx(EXIT_FAILURE, "getaddrinfo(): an error occurred");
 
 	sock_addr.sin_family = AF_INET;
 	sock_addr.sin_port = htons(80);
-	sock_addr.sin_addr.s_addr = *((unsigned long *)h_addr->h_addr);
+	sock_addr.sin_addr.s_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+	freeaddrinfo(res);
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1)
@@ -106,8 +117,8 @@ main(int argc, char *argv[])
 	city = json_object_get_string(json_object_object_get(obj, "city"));
 	printf("%s- %sCity%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, city, KNRM);
 	
-	timezone = json_object_get_string(json_object_object_get(obj, "timezone"));
-	printf("%s- %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, timezone, KNRM);
+	the_timezone = json_object_get_string(json_object_object_get(obj, "timezone"));
+	printf("%s- %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, the_timezone, KNRM);
 	
 	isp = json_object_get_string(json_object_object_get(obj, "isp"));
 	printf("%s- %sISP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, isp, KNRM);
@@ -124,12 +135,13 @@ main(int argc, char *argv[])
 char *
 get_page(int s, char *ip)
 {
-	int i;
+	ssize_t i;
 	char *msg = calloc(sizeof(char), 1024);
-	char *ww, buf[1024];
+	char *ww;
+	char buf[1024];
 
-	const char *format = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
-							"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+	const char format[] = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
+			"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
 
 	if (!sprintf(msg, format, ip, HOST))
 		errx(EXIT_FAILURE, "sprintf() faild");
@@ -139,10 +151,11 @@ get_page(int s, char *ip)
 		err(EXIT_FAILURE, "send()");
 
 	fcntl(s, F_SETFL, O_NONBLOCK);
+	struct timespec timeout = {0, 100000000L};
 	while (1) {
 		i = recv(s, buf, 1024, 0);
 		if (i == -1)
-			usleep(100000);
+			nanosleep(&timeout, NULL);
 		else
 			break;
 	}
