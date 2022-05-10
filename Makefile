@@ -55,5 +55,5 @@ uninstall:
 clean:
 	rm -f $(TARGET)
 
-test:
+test: $(TARGET)
 	./ip-info 8.8.8.8
