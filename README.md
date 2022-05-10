@@ -8,21 +8,21 @@ API: <a href="http://ip-api.com">ip-api.com</a> <br />
 
 Dependencies for build:
 ```
-make (gmake or bmake)
-clang/llvm (or gcc/binutils)
-json-c
+make
+a c compiler and a strip tool, it depends on you (suggestion: clang/llvm, gcc or tcc)
+json-c c library
 ```
 
-Build and install (clang/llvm):
+Build and install:
 ``` bash
 $ make
-$ make install
+$ make install # run as root
 ```
 
-Build and install (gcc/binutils):
+Build and install with custom c compiler, strip and cflags (for example clang):
 ``` bash
-$ make CC=gcc STRIP=strip CFLAGS="-O2"
-$ make install
+$ make CC=clang STRIP=llvm-strip CFLAGS="-O3 -flto=thin -march=native -fuse-ld=lld"
+$ make install # run as root
 ```
 
 Clean:
@@ -33,6 +33,11 @@ $ make clean
 Uninstall:
 ``` bash
 $ make uninstall
+```
+
+Test:
+``` bash
+$ make test
 ```
 
 Usage:
