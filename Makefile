@@ -30,9 +30,9 @@
 
 SRC = ./src/ip-info.c
 PREFIX = /usr/local
-CC = cc
-STRIP = strip
-CFLAGS = -Wall -Wextra -O2 -pipe -fstack-protector-strong -fpie
+CC ?= cc
+STRIP ?= strip
+CFLAGS ?= -Wall -Wextra -O2 -pipe -fstack-protector-strong -fpie
 LIBS != pkg-config --cflags --libs json-c
 TARGET = ip-info
 
