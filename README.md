@@ -4,7 +4,7 @@
 </div>
 
 # Get information about an IP
-API: <a href="http://ip-api.com">ip-api.com</a> <br />
+API: <a href="http://ipwho.is">ipwho.is</a> <br />
 
 Dependencies for build:
 ```
