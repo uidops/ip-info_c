@@ -30,7 +30,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <err.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -47,7 +47,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define HOST "ip-api.com"
+#define HOST "ipwho.is"
 
 #define KNRM  "\x1B[0m"
 #define KGRN  "\x1B[32m"
@@ -63,12 +63,15 @@ main(int argc, char **argv)
 	int sockfd = -1;
 	char *ip;
 
-	const char *status;
+	int success;
 	const char *country;
 	const char *city;
 	const char *the_timezone;
 	const char *isp;
 	const char *query;
+
+	struct json_object *connection_obj;
+	struct json_object *timezone_obj;
 
 	struct addrinfo hints;
 	struct addrinfo *res;
@@ -111,22 +114,24 @@ main(int argc, char **argv)
 	if (error != json_tokener_success)
 		errx(EXIT_FAILURE, "Buffer not json.");
 
-	status = json_object_get_string(json_object_object_get(obj, "status"));
-	printf("%s- %sStatus%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, status, KNRM);
-	
+	success = json_object_get_boolean(json_object_object_get(obj, "success"));
+	printf("%s- %sStatus%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, success ? "Success" : "Falied", KNRM);
+
 	country = json_object_get_string(json_object_object_get(obj, "country"));
 	printf("%s* %sCountry%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, country, KNRM);
-	
+
 	city = json_object_get_string(json_object_object_get(obj, "city"));
 	printf("%s- %sCity%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, city, KNRM);
-	
-	the_timezone = json_object_get_string(json_object_object_get(obj, "timezone"));
+
+	timezone_obj = json_object_object_get(obj, "timezone");
+	the_timezone = json_object_get_string(json_object_object_get(timezone_obj, "id"));
 	printf("%s* %sTimezone%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, the_timezone, KNRM);
-	
-	isp = json_object_get_string(json_object_object_get(obj, "isp"));
+
+	connection_obj = json_object_object_get(obj, "connection");
+	isp = json_object_get_string(json_object_object_get(connection_obj, "isp"));
 	printf("%s- %sISP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, isp, KNRM);
-	
-	query = json_object_get_string(json_object_object_get(obj, "query"));
+
+	query = json_object_get_string(json_object_object_get(obj, "ip"));
 	printf("%s* %sIP%s:%s %s%s\n", KMAG, KBLU, KMAG, KGRN, query, KNRM);
 
 	free(buffer);
@@ -167,11 +172,13 @@ char *
 get_page(int sockfd, char *ip)
 {
 	ssize_t i;
-	const char format[] = "GET /json/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
-			"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\n\r\n";
+	const char format[] = "GET /%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: "
+			"Mozilla/5.0 (X11; Linux i686; rv:85.0) Gecko/20100101 Firefox/85.0.\r\nConnection: close\r\n\r\n";
 	size_t length = sizeof(format) + sizeof(HOST) + strlen(ip);
 	char *msg = calloc(sizeof(char), length+1);
-	char buf[length+1+512];
+	char buf[4096];
+	size_t total = 0;
+	int retries = 0;
 
 
 	if (!snprintf(msg, length, format, ip, HOST))
@@ -183,19 +190,25 @@ get_page(int sockfd, char *ip)
 
 	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	struct timespec timeout = {0, 100000000L};
-	while (1) {
-		i = recv(sockfd, buf, length+1+512, 0);
-		if (i == -1)
+	while (total < sizeof(buf) - 1) {
+		i = recv(sockfd, buf + total, sizeof(buf) - 1 - total, 0);
+		if (i == -1) {
+			if (retries++ > 20)
+				break;
 			nanosleep(&timeout, NULL);
-		else
+		} else if (i == 0) {
 			break;
+		} else {
+			total += i;
+			retries = 0;
+		}
 	}
 
 
-	if (!i)
+	if (!total)
 		errx(EXIT_FAILURE, "no data recivied.");
 
-	buf[i] = '\0';
+	buf[total] = '\0';
 
 	long status_code = response_code(buf);
 	if (status_code != 200)
