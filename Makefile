@@ -1,7 +1,7 @@
 #
 # BSD 2-Clause License
 #
-# Copyright (c) 2021, uidops
+# Copyright (c) 2026, uidops
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,11 @@
 SRC = ./src/ip-info.c
 PREFIX = /usr/local
 CC ?= cc
-STRIP ?= strip
-CFLAGS ?= -Wall -Wextra -O2 -pipe -fstack-protector-strong -fpie
-LIBS != pkg-config --cflags --libs json-c
+STRIP ?= llvm-strip
+CFLAGS ?= -Wall -Wextra -O3 -flto=thin -pipe -fstack-protector-strong -fpie -DHAVE_MAXMINDDB
+LIBS != pkg-config --cflags --libs json-c libmaxminddb
 TARGET = ip-info
+DATASET = dataset/GeoLite2-City.mmdb dataset/GeoLite2-ASN.mmdb
 
 .PHONY: clean test all
 
@@ -46,11 +47,15 @@ $(TARGET): $(SRC)
 
 install: $(TARGET)
 	mkdir -p $(PREFIX)/bin
+	mkdir -p $(PREFIX)/share/ip-info
 	cp -f $(TARGET) $(PREFIX)/bin
+	cp -f $(DATASET) $(PREFIX)/share/ip-info/
 	chmod +x $(PREFIX)/bin/$(TARGET)
+	chmod 644 $(PREFIX)/share/ip-info/*.mmdb
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(TARGET)
+	rm -rf $(PREFIX)/share/ip-info
 
 clean:
 	rm -f $(TARGET)
